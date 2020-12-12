@@ -1,0 +1,48 @@
+{
+  "name": "@block65/kms-jsonwebtoken",
+  "version": "1.0.0",
+  "private": false,
+  "license": "UNLICENSED",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/*.js",
+    "dist/*.d.ts",
+    "dist/*.map"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:clean": "rimraf dist/**",
+    "build:watch": "tsc -w",
+    "prepare": "yarn build:clean && yarn build",
+    "test": "jest"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^8.5.1"
+  },
+  "devDependencies": {
+    "@block65/eslint-config": "3.1.1",
+    "@google-cloud/kms": "^2.1.4",
+    "@types/jest": "^26.0.19",
+    "@types/jsonwebtoken": "^8.5.0",
+    "@types/node": "^14.14.12",
+    "@typescript-eslint/eslint-plugin": "^4.9.1",
+    "@typescript-eslint/parser": "^4.9.1",
+    "aws-sdk": "^2.809.0",
+    "eslint": "^7.15.0",
+    "eslint-plugin-formatjs": "^2.9.10",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-prettier": "^3.2.0",
+    "eslint-plugin-react": "^7.21.5",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "jest": "^26.6.3",
+    "prettier": "^2.2.1",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^26.4.4",
+    "typescript": "^4.1.3"
+  },
+  "peerDependencies": {
+    "@google-cloud/kms": "^2.1.4",
+    "aws-sdk": "^2.809.0"
+  }
+}
