@@ -78,8 +78,6 @@ export async function awsKmsVerify(
         throw new Error('Incompatible Public Key');
       }
 
-      // console.log(publicKey.PublicKey.toString('base64'));
-
       const pubKeyStr = publicKey.PublicKey.toString('base64');
       return `-----BEGIN PUBLIC KEY-----\n${pubKeyStr}\n-----END PUBLIC KEY-----`;
     },

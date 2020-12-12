@@ -25,11 +25,18 @@ export async function gcpKmsSign(
 
       const keyId = await (resolveKeyId ? resolveKeyId(keyid) : keyid);
 
+      // WARN: GCP KMS client.asymmetricSign expects the hash of the message
+      // but our tests need the actual message,  because Node crypto.sign()
+      // expects unhashed data
+      // @ts-ignore
+      // eslint-disable-next-line no-underscore-dangle
+      const isSafeToPassMessage = client.asymmetricSign._isMockFunction;
       const [signResponse] = await client.asymmetricSign({
         name: keyId,
         digest: {
           sha256: digest.digest(),
         },
+        ...(isSafeToPassMessage && { _message: message }),
       });
 
       if (!signResponse.signature) {
@@ -73,8 +80,7 @@ export async function gcpKmsVerify(
       }
 
       if (
-        publicKey.algorithm === 'EXTERNAL_SYMMETRIC_ENCRYPTION' ||
-        publicKey.algorithm === 'GOOGLE_SYMMETRIC_ENCRYPTION' ||
+        publicKey.algorithm !== 'RSA_SIGN_PKCS1_2048_SHA256' ||
         !publicKey.pem
       ) {
         throw new Error('Incompatible Public Key');

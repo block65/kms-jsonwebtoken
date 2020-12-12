@@ -1,5 +1,5 @@
-import { KeyManagementServiceClient } from '@google-cloud/kms/build/src/v1';
-import { gcpKmsSign, gcpKmsVerify } from '../lib/gcp-kms';
+import { KeyManagementServiceClient } from '@google-cloud/kms';
+import { gcpKmsSign, gcpKmsVerify } from '../lib';
 
 describe('GCP KMS', () => {
   test('Sign / Verify', async () => {

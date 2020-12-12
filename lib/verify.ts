@@ -1,9 +1,10 @@
 import * as jsonwebtoken from 'jsonwebtoken';
-import { JwtHeader, Secret } from 'jsonwebtoken';
 
 export async function verify(
   token: string,
-  getSecret: (header: JwtHeader) => Secret | Promise<Secret>,
+  getSecret: (
+    header: jsonwebtoken.JwtHeader,
+  ) => jsonwebtoken.Secret | Promise<jsonwebtoken.Secret>,
   options?: Omit<jsonwebtoken.VerifyOptions, 'algorithms'>,
 ): Promise<object> {
   return new Promise((resolve, reject) => {
