@@ -1,11 +1,12 @@
+import type { KMSClient } from '@aws-sdk/client-kms';
 import * as jsonwebtoken from 'jsonwebtoken';
-import { KMS } from 'aws-sdk';
 import { sign } from './sign';
 import { verify } from './verify';
+import { asymmetricSign, getPublicKey } from './aws-crypto';
 
 export async function awsKmsSign(
   payload: string | Buffer | object,
-  kms: KMS,
+  client: KMSClient,
   options: Omit<jsonwebtoken.SignOptions, 'algorithm'> & {
     resolveKeyId?: (kid: string) => string | Promise<string>;
   },
@@ -14,27 +15,14 @@ export async function awsKmsSign(
 
   return sign(
     payload,
-    async (header, { keyid }) => {
+    async (message, { keyid }) => {
       if (!keyid) {
         throw new Error('Missing Key Id in Header');
       }
 
       const keyId = await (resolveKeyId ? resolveKeyId(keyid) : keyid);
 
-      const signatureResult = await kms
-        .sign({
-          KeyId: keyId,
-          MessageType: 'RAW',
-          Message: header,
-          SigningAlgorithm: 'RSASSA_PKCS1_V1_5_SHA_256',
-        })
-        .promise();
-
-      if (!Buffer.isBuffer(signatureResult.Signature)) {
-        throw new Error('Incompatible signature');
-      }
-
-      return signatureResult.Signature;
+      return asymmetricSign(client, keyId, message);
     },
     jwtOptions,
   );
@@ -42,7 +30,7 @@ export async function awsKmsSign(
 
 export async function awsKmsVerify(
   token: string,
-  kms: KMS,
+  client: KMSClient,
   options: Omit<jsonwebtoken.VerifyOptions, 'algorithms'> & {
     resolveKeyId?: (kid: string) => string | Promise<string>;
   } = {},
@@ -64,22 +52,7 @@ export async function awsKmsVerify(
         ? resolveKeyId(header.kid)
         : header.kid);
 
-      const publicKey = await kms.getPublicKey({ KeyId: keyId }).promise();
-
-      if (!publicKey.PublicKey) {
-        throw new Error('Missing Public Key');
-      }
-
-      if (
-        publicKey.KeyUsage !== 'SIGN_VERIFY' ||
-        !publicKey.CustomerMasterKeySpec?.startsWith('RSA') ||
-        !Buffer.isBuffer(publicKey.PublicKey)
-      ) {
-        throw new Error('Incompatible Public Key');
-      }
-
-      const pubKeyStr = publicKey.PublicKey.toString('base64');
-      return `-----BEGIN PUBLIC KEY-----\n${pubKeyStr}\n-----END PUBLIC KEY-----`;
+      return getPublicKey(client, keyId);
     },
     jwtOptions,
   );

@@ -1,3 +1,3 @@
-export { awsKmsSign, awsKmsVerify } from './aws-kms';
+export { awsKmsSign, awsKmsVerify } from './aws';
 
-export { gcpKmsSign, gcpKmsVerify } from './gcp-kms';
+export { gcpKmsSign, gcpKmsVerify } from './gcp';

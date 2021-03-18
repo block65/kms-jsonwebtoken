@@ -1,8 +1,8 @@
 import * as jsonwebtoken from 'jsonwebtoken';
 import { KeyManagementServiceClient } from '@google-cloud/kms';
-import * as crypto from 'crypto';
 import { sign } from './sign';
 import { verify } from './verify';
+import { asymmetricSign, getPublicKey } from './gcp-crypto';
 
 export async function gcpKmsSign(
   payload: string | Buffer | object,
@@ -20,30 +20,11 @@ export async function gcpKmsSign(
         throw new Error('Missing Key Id in Header');
       }
 
-      const digest = crypto.createHash('sha256');
-      digest.update(message);
-
       const keyId = await (resolveKeyId ? resolveKeyId(keyid) : keyid);
 
-      // WARN: GCP KMS client.asymmetricSign expects the hash of the message
-      // but our tests need the actual message,  because Node crypto.sign()
-      // expects unhashed data
-      // @ts-ignore
-      // eslint-disable-next-line no-underscore-dangle
-      const isSafeToPassMessage = client.asymmetricSign._isMockFunction;
-      const [signResponse] = await client.asymmetricSign({
-        name: keyId,
-        digest: {
-          sha256: digest.digest(),
-        },
-        ...(isSafeToPassMessage && { _message: message }),
-      });
+      const signature = await asymmetricSign(client, keyId, message);
 
-      if (!signResponse.signature) {
-        throw new Error('Empty signature from GCP');
-      }
-
-      return Buffer.from(signResponse.signature);
+      return Buffer.from(signature);
     },
     jwtOptions,
   );
@@ -73,20 +54,7 @@ export async function gcpKmsVerify(
         ? resolveKeyId(header.kid)
         : header.kid);
 
-      const [publicKey] = await client.getPublicKey({ name: keyId });
-
-      if (!publicKey) {
-        throw new Error('Missing Public Key');
-      }
-
-      if (
-        publicKey.algorithm !== 'RSA_SIGN_PKCS1_2048_SHA256' ||
-        !publicKey.pem
-      ) {
-        throw new Error('Incompatible Public Key');
-      }
-
-      return publicKey.pem;
+      return getPublicKey(client, keyId);
     },
     jwtOptions,
   );
