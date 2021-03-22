@@ -3,6 +3,7 @@ import * as jsonwebtoken from 'jsonwebtoken';
 import { sign } from './sign';
 import { verify } from './verify';
 import { asymmetricSign, getPublicKey } from './aws-crypto';
+import { KmsJsonWebTokenError } from './error';
 
 export async function awsKmsSign(
   payload: string | Buffer | object,
@@ -17,7 +18,10 @@ export async function awsKmsSign(
     payload,
     async (message, { keyid }) => {
       if (!keyid) {
-        throw new Error('Missing Key Id in Header');
+        throw new KmsJsonWebTokenError('Missing Key Id in Header').debug({
+          message: message.toString('base64'),
+          keyid,
+        });
       }
 
       const keyId = await (resolveKeyId ? resolveKeyId(keyid) : keyid);
@@ -41,11 +45,15 @@ export async function awsKmsVerify(
     token,
     async (header) => {
       if (header.alg !== 'RS256') {
-        throw new Error('Header alg is not RS256');
+        throw new KmsJsonWebTokenError('Header alg is not RS256').debug({
+          header,
+        });
       }
 
       if (!header.kid) {
-        throw new Error('Missing Key Id in Header');
+        throw new KmsJsonWebTokenError('Missing Key Id in Header').debug({
+          header,
+        });
       }
 
       const keyId = await (resolveKeyId

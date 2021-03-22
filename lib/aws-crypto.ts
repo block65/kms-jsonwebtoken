@@ -4,6 +4,7 @@ import {
   SignCommand,
 } from '@aws-sdk/client-kms';
 import * as pMemoize from 'p-memoize';
+import { KmsJsonWebTokenError } from './error';
 
 export async function asymmetricSign(
   client: KMSClient,
@@ -19,8 +20,16 @@ export async function asymmetricSign(
     }),
   );
 
+  if (!signatureResult.Signature) {
+    throw new KmsJsonWebTokenError('Empty signature returned').debug({
+      signatureResult,
+    });
+  }
+
   if (!Buffer.isBuffer(signatureResult.Signature)) {
-    throw new Error('Incompatible signature');
+    throw new KmsJsonWebTokenError('Incompatible signature').debug({
+      signatureResult,
+    });
   }
 
   return signatureResult.Signature;
@@ -36,7 +45,7 @@ export const getPublicKey = pMemoize(
     );
 
     if (!publicKey.PublicKey) {
-      throw new Error('Missing Public Key');
+      throw new KmsJsonWebTokenError('Missing Public Key').debug({ publicKey });
     }
 
     if (
@@ -44,7 +53,9 @@ export const getPublicKey = pMemoize(
       !publicKey.CustomerMasterKeySpec?.startsWith('RSA') ||
       !Buffer.isBuffer(publicKey.PublicKey)
     ) {
-      throw new Error('Incompatible Public Key');
+      throw new KmsJsonWebTokenError('Incompatible Public Key').debug({
+        publicKey,
+      });
     }
 
     const pubKeyStr = publicKey.PublicKey.toString('base64');

@@ -1,4 +1,5 @@
 import * as jsonwebtoken from 'jsonwebtoken';
+import { KmsJsonWebTokenError } from './error';
 
 export async function verify(
   token: string,
@@ -22,7 +23,9 @@ export async function verify(
         }
 
         if (!result) {
-          return reject(new Error('Empty token result'));
+          return reject(
+            new KmsJsonWebTokenError('Empty token result').debug({ result }),
+          );
         }
 
         return resolve(result);

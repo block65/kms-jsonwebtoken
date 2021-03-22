@@ -1,6 +1,7 @@
 import { KeyManagementServiceClient } from '@google-cloud/kms';
 import * as crypto from 'crypto';
 import * as pMemoize from 'p-memoize';
+import { KmsJsonWebTokenError } from './error';
 
 export async function asymmetricSign(
   client: KeyManagementServiceClient,
@@ -18,7 +19,9 @@ export async function asymmetricSign(
   });
 
   if (!signResponse.signature) {
-    throw new Error('Empty signature from GCP');
+    throw new KmsJsonWebTokenError('Empty signature from GCP').debug({
+      signResponse,
+    });
   }
 
   return Buffer.from(signResponse.signature);
@@ -32,14 +35,16 @@ export const getPublicKey = pMemoize(
     const [publicKey] = await client.getPublicKey({ name: keyId });
 
     if (!publicKey) {
-      throw new Error('Missing Public Key');
+      throw new KmsJsonWebTokenError('Missing Public Key').debug({ publicKey });
     }
 
     if (
       publicKey.algorithm !== 'RSA_SIGN_PKCS1_2048_SHA256' ||
       !publicKey.pem
     ) {
-      throw new Error('Incompatible Public Key');
+      throw new KmsJsonWebTokenError('Incompatible Public Key').debug({
+        publicKey,
+      });
     }
 
     return publicKey.pem;

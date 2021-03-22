@@ -43,28 +43,30 @@ mockKmsClient.on(GetPublicKeyCommand).callsFake(
 );
 
 describe('Basic Tests', () => {
+  const kms = new KMSClient({});
+
+  const kid = '46572b82-7181-494e-bd11-95152094cc27';
+
+  async function resolveKeyId(id: string) {
+    return `arn:aws:kms:us-east-1:123456789012:key/${id}`;
+  }
+
   test('AWS KMS Sign / Verify', async () => {
-    const kms = new KMSClient({});
-
-    const kid = '46572b82-7181-494e-bd11-95152094cc27';
-
-    async function resolveKeyId(id: string) {
-      return `arn:aws:kms:us-east-1:123456789012:key/${id}`;
-    }
-
     const initialPayload = {
       hello: 'test',
     };
 
-    const token = await awsKmsSign(initialPayload, kms, {
+    const signedToken = await awsKmsSign(initialPayload, kms, {
       jwtid: 'static',
       keyid: kid,
       resolveKeyId,
     });
 
-    const completePayload = await awsKmsVerify(token, kms, { complete: true });
+    // const completePayload = await awsKmsVerify(token, kms, { complete: true });
 
-    expect(completePayload).toStrictEqual(
+    await expect(
+      awsKmsVerify(signedToken, kms, { complete: true }),
+    ).resolves.toStrictEqual(
       expect.objectContaining({
         header: {
           alg: 'RS256',
@@ -79,5 +81,13 @@ describe('Basic Tests', () => {
         signature: expect.any(String),
       }),
     );
-  }, 30000);
+
+    await expect(awsKmsVerify(signedToken, kms)).resolves.toStrictEqual({
+      jti: 'static',
+      iat: expect.any(Number),
+      ...initialPayload,
+    });
+  });
+
+  test('AWS KMS Sign / Verify', async () => {});
 });

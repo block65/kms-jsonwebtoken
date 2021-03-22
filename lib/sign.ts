@@ -1,5 +1,6 @@
 import * as jsonwebtoken from 'jsonwebtoken';
 import * as crypto from 'crypto';
+import { KmsJsonWebTokenError } from './error';
 
 function toBase64Url(buff: Buffer): string {
   return Buffer.from(buff)
@@ -22,7 +23,9 @@ export async function sign(
   options: Omit<jsonwebtoken.SignOptions, 'algorithm'>,
 ): Promise<string> {
   if (!options.keyid) {
-    throw new Error('Must provide options.keyid');
+    throw new KmsJsonWebTokenError('Must provide options.keyid').debug({
+      options,
+    });
   }
 
   // Use jsonwebtoken.sign to get the payload, as it has many useful features.
@@ -41,7 +44,9 @@ export async function sign(
         }
 
         if (!result) {
-          return reject(new Error('Empty token result'));
+          return reject(
+            new KmsJsonWebTokenError('Empty token result').debug({ result }),
+          );
         }
 
         return resolve(result);
