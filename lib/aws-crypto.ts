@@ -10,7 +10,7 @@ export async function asymmetricSign(
   client: KMSClient,
   keyId: string,
   message: Buffer,
-) {
+): Promise<Buffer> {
   const signatureResult = await client.send(
     new SignCommand({
       KeyId: keyId,
@@ -26,13 +26,7 @@ export async function asymmetricSign(
     });
   }
 
-  if (!Buffer.isBuffer(signatureResult.Signature)) {
-    throw new KmsJsonWebTokenError('Incompatible signature').debug({
-      signatureResult,
-    });
-  }
-
-  return signatureResult.Signature;
+  return Buffer.from(signatureResult.Signature);
 }
 
 export const getPublicKey = pMemoize(
