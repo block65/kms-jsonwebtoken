@@ -44,15 +44,14 @@ export const getPublicKey = pMemoize(
 
     if (
       publicKey.KeyUsage !== 'SIGN_VERIFY' ||
-      !publicKey.CustomerMasterKeySpec?.startsWith('RSA') ||
-      !Buffer.isBuffer(publicKey.PublicKey)
+      !publicKey.CustomerMasterKeySpec?.startsWith('RSA')
     ) {
       throw new KmsJsonWebTokenError('Incompatible Public Key').debug({
         publicKey,
       });
     }
 
-    const pubKeyStr = publicKey.PublicKey.toString('base64');
+    const pubKeyStr = Buffer.from(publicKey.PublicKey).toString('base64');
 
     return `-----BEGIN PUBLIC KEY-----\n${pubKeyStr}\n-----END PUBLIC KEY-----`;
   },
