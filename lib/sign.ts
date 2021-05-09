@@ -2,18 +2,6 @@ import * as jsonwebtoken from 'jsonwebtoken';
 import * as crypto from 'crypto';
 import { KmsJsonWebTokenError } from './error';
 
-function toBase64Url(buff: Buffer): string {
-  return Buffer.from(buff)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-}
-
-function fromBase64Url(encoded: string): Buffer {
-  return Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
-}
-
 export async function sign(
   payload: string | Buffer | object,
   signatureFunction: (
@@ -36,7 +24,7 @@ export async function sign(
       {
         ...options,
         algorithm: 'none',
-        jwtid: options.jwtid || toBase64Url(crypto.randomBytes(12)),
+        jwtid: options.jwtid || crypto.randomBytes(12).toString('base64url'),
       },
       (err, result) => {
         if (err) {
@@ -55,15 +43,21 @@ export async function sign(
   });
 
   const [encodedAlgNoneHeader, encodedPayload] = token.split('.');
-  const header = JSON.parse(fromBase64Url(encodedAlgNoneHeader).toString());
-  const encodedRs256Header = toBase64Url(
-    Buffer.from(JSON.stringify({ ...header, alg: 'RS256' })),
+  const header = JSON.parse(
+    Buffer.from(encodedAlgNoneHeader, 'base64url').toString(),
   );
+  const encodedRs256Header = Buffer.from(
+    JSON.stringify({ ...header, alg: 'RS256' }),
+  ).toString('base64url');
 
   const signature = await signatureFunction(
     Buffer.from(`${encodedRs256Header}.${encodedPayload}`),
     options,
   );
 
-  return [encodedRs256Header, encodedPayload, toBase64Url(signature)].join('.');
+  return [
+    encodedRs256Header,
+    encodedPayload,
+    signature.toString('base64url'),
+  ].join('.');
 }
