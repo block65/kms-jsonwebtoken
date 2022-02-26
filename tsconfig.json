@@ -2,19 +2,15 @@
   "compilerOptions": {
     "strict": true,
     "declaration": true,
-    "target": "es2019",
-    "module": "commonjs",
+    "target": "es2021",
+    "module": "esnext",
     "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "outDir": "./dist",
     "removeComments": true,
-    "lib": [
-      "es2019"
-    ]
+    "lib": ["es2021"]
   },
-  "include": [
-    "./lib"
-  ],
-  "exclude": [
-    "./dist"
-  ]
+  "include": ["./lib"],
+  "exclude": ["./dist"]
 }
