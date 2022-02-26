@@ -3,6 +3,7 @@
   "version": "4.1.0",
   "private": false,
   "license": "UNLICENSED",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -14,7 +15,8 @@
     "build:clean": "rimraf dist/**",
     "build:watch": "tsc -w",
     "prepare": "yarn build:clean && yarn build",
-    "test": "jest"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "yarn test --watchAll"
   },
   "dependencies": {
     "@block65/custom-error": "^3.0.0",
