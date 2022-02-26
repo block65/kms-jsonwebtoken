@@ -6,43 +6,43 @@ import {
   SignRequest,
   SignResponse,
 } from '@aws-sdk/client-kms';
-import { mockClient } from 'aws-sdk-client-mock';
-import * as crypto from 'crypto';
-import { awsKmsSign, awsKmsVerify } from '../lib';
+import awsSdkMock from 'aws-sdk-client-mock';
+import { constants, generateKeyPairSync, sign } from 'node:crypto';
+import { awsKmsSign, awsKmsVerify } from '../lib/index.js';
 
-const mockKmsClient = mockClient(KMSClient);
+const mockKmsClient = awsSdkMock.mockClient(KMSClient);
 
-const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+const { publicKey, privateKey } = generateKeyPairSync('rsa', {
   modulusLength: 2048,
 });
 
-mockKmsClient.on(SignCommand).callsFake(
-  async ({ Message }: SignRequest): Promise<SignResponse> => {
+mockKmsClient
+  .on(SignCommand)
+  .callsFake(async ({ Message }: SignRequest): Promise<SignResponse> => {
     if (!Message) {
       throw new Error('Empty Message');
     }
 
     return {
-      Signature: crypto.sign('sha256', Message, {
+      Signature: sign('sha256', Message, {
         key: privateKey,
-        padding: crypto.constants.RSA_PKCS1_PADDING,
+        padding: constants.RSA_PKCS1_PADDING,
       }),
       SigningAlgorithm: 'RSASSA_PKCS1_V1_5_SHA_256',
     };
-  },
-);
+  });
 
-mockKmsClient.on(GetPublicKeyCommand).callsFake(
-  async (): Promise<GetPublicKeyResponse> => {
+mockKmsClient
+  .on(GetPublicKeyCommand)
+  .callsFake(async (): Promise<GetPublicKeyResponse> => {
     return {
       PublicKey: publicKey.export({ format: 'der', type: 'spki' }),
       KeyUsage: 'SIGN_VERIFY',
-      CustomerMasterKeySpec: 'RSA_2048',
+      KeySpec: 'RSA_2048',
     };
-  },
-);
+  });
 
-describe('Basic Tests', () => {
+describe.only('Basic Tests', () => {
   const kms = new KMSClient({});
 
   const kid = '46572b82-7181-494e-bd11-95152094cc27';
@@ -64,9 +64,7 @@ describe('Basic Tests', () => {
 
     // const completePayload = await awsKmsVerify(token, kms, { complete: true });
 
-    await expect(
-      awsKmsVerify(signedToken, kms, { complete: true }),
-    ).resolves.toStrictEqual(
+    await expect(awsKmsVerify(signedToken, kms)).resolves.toStrictEqual(
       expect.objectContaining({
         header: {
           alg: 'RS256',
@@ -83,9 +81,17 @@ describe('Basic Tests', () => {
     );
 
     await expect(awsKmsVerify(signedToken, kms)).resolves.toStrictEqual({
-      jti: 'static',
-      iat: expect.any(Number),
-      ...initialPayload,
+      header: {
+        typ: 'JWT',
+        kid,
+        alg: 'RS256',
+      },
+      payload: {
+        jti: 'static',
+        iat: expect.any(Number),
+        ...initialPayload,
+      },
+      signature: expect.any(String),
     });
   });
 

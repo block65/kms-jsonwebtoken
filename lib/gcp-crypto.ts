@@ -1,14 +1,14 @@
 import { KeyManagementServiceClient } from '@google-cloud/kms';
-import * as crypto from 'crypto';
-import * as pMemoize from 'p-memoize';
-import { KmsJsonWebTokenError } from './error';
+import { createHash } from 'node:crypto';
+import pMemoize from 'p-memoize';
+import { KmsJsonWebTokenError } from './error.js';
 
 export async function asymmetricSign(
   client: KeyManagementServiceClient,
   keyId: string,
   message: Buffer,
 ): Promise<Buffer> {
-  const digest = crypto.createHash('sha256');
+  const digest = createHash('sha256');
   digest.update(message);
 
   const [signResponse] = await client.asymmetricSign({

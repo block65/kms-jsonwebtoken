@@ -1,9 +1,9 @@
 import type { KMSClient } from '@aws-sdk/client-kms';
-import * as jsonwebtoken from 'jsonwebtoken';
-import { sign } from './sign';
-import { verify } from './verify';
-import { asymmetricSign, getPublicKey } from './aws-crypto';
-import { KmsJsonWebTokenError } from './error';
+import jsonwebtoken from 'jsonwebtoken';
+import { sign } from './sign.js';
+import { verify } from './verify.js';
+import { asymmetricSign, getPublicKey } from './aws-crypto.js';
+import { KmsJsonWebTokenError } from './error.js';
 
 export async function awsKmsSign(
   payload: string | Buffer | object,
@@ -11,7 +11,7 @@ export async function awsKmsSign(
   options: Omit<jsonwebtoken.SignOptions, 'algorithm'> & {
     resolveKeyId?: (kid: string) => string | Promise<string>;
   },
-) {
+): Promise<string> {
   const { resolveKeyId, ...jwtOptions } = options;
 
   return sign(
@@ -35,10 +35,10 @@ export async function awsKmsSign(
 export async function awsKmsVerify(
   token: string,
   client: KMSClient,
-  options: Omit<jsonwebtoken.VerifyOptions, 'algorithms'> & {
+  options: Omit<jsonwebtoken.VerifyOptions, 'algorithms' | 'complete'> & {
     resolveKeyId?: (kid: string) => string | Promise<string>;
   } = {},
-): Promise<object> {
+): Promise<jsonwebtoken.Jwt> {
   const { resolveKeyId, ...jwtOptions } = options;
 
   return verify(

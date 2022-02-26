@@ -1,28 +1,25 @@
 import { KeyManagementServiceClient } from '@google-cloud/kms';
-import * as crypto from 'crypto';
-import { gcpKmsSign, gcpKmsVerify } from '../lib';
+import { jest } from '@jest/globals';
+import { constants, generateKeyPairSync, sign } from 'node:crypto';
 
-jest.mock('../lib/gcp-crypto', () => {
-  const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+jest.unstable_mockModule('../lib/gcp-crypto.js', () => {
+  const { publicKey, privateKey } = generateKeyPairSync('rsa', {
     modulusLength: 2048,
   });
 
   return {
-    getPublicKey: jest.fn(
-      async (): /* request: protos.google.cloud.kms.v1.IGetPublicKeyRequest, */
-      Promise<string> => {
-        return publicKey.export({ format: 'pem', type: 'spki' }).toString();
-      },
-    ),
+    getPublicKey: jest.fn(async (): Promise<string> => {
+      return publicKey.export({ format: 'pem', type: 'spki' }).toString();
+    }),
 
     asymmetricSign: async function mockSigner(
       client: KeyManagementServiceClient,
       keyId: string,
       message: Buffer,
     ): Promise<Buffer> {
-      return crypto.sign('sha256', message, {
+      return sign('sha256', message, {
         key: privateKey,
-        padding: crypto.constants.RSA_PKCS1_PADDING,
+        padding: constants.RSA_PKCS1_PADDING,
       });
     },
   };
@@ -30,6 +27,8 @@ jest.mock('../lib/gcp-crypto', () => {
 
 describe('GCP KMS', () => {
   test('Sign / Verify', async () => {
+    const { gcpKmsSign, gcpKmsVerify } = await import('../lib/index.js');
+
     const client = new KeyManagementServiceClient();
 
     const projectId = 'block65-corp';
@@ -62,12 +61,11 @@ describe('GCP KMS', () => {
       resolveKeyId,
     });
 
-    const completePayload = await gcpKmsVerify(token, client, {
-      complete: true,
+    const payload = await gcpKmsVerify(token, client, {
       resolveKeyId,
     });
 
-    expect(completePayload).toStrictEqual({
+    expect(payload).toStrictEqual({
       header: {
         alg: 'RS256',
         kid,

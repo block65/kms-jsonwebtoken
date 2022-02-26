@@ -1,6 +1,6 @@
-import * as jsonwebtoken from 'jsonwebtoken';
-import * as crypto from 'crypto';
-import { KmsJsonWebTokenError } from './error';
+import jsonwebtoken from 'jsonwebtoken';
+import { randomBytes } from 'node:crypto';
+import { KmsJsonWebTokenError } from './error.js';
 
 export async function sign(
   payload: string | Buffer | object,
@@ -24,7 +24,7 @@ export async function sign(
       {
         ...options,
         algorithm: 'none',
-        jwtid: options.jwtid || crypto.randomBytes(12).toString('base64url'),
+        jwtid: options.jwtid || randomBytes(12).toString('base64url'),
       },
       (err, result) => {
         if (err) {

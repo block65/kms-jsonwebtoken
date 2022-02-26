@@ -1,9 +1,9 @@
-import * as jsonwebtoken from 'jsonwebtoken';
+import jsonwebtoken from 'jsonwebtoken';
 import { KeyManagementServiceClient } from '@google-cloud/kms';
-import { sign } from './sign';
-import { verify } from './verify';
-import { asymmetricSign, getPublicKey } from './gcp-crypto';
-import { KmsJsonWebTokenError } from './error';
+import { sign } from './sign.js';
+import { verify } from './verify.js';
+import { asymmetricSign, getPublicKey } from './gcp-crypto.js';
+import { KmsJsonWebTokenError } from './error.js';
 
 export async function gcpKmsSign(
   payload: string | Buffer | object,
@@ -11,7 +11,7 @@ export async function gcpKmsSign(
   options: Omit<jsonwebtoken.SignOptions, 'algorithm'> & {
     resolveKeyId?: (kid: string) => string | Promise<string>;
   } = {},
-) {
+): Promise<string> {
   const { resolveKeyId, ...jwtOptions } = options;
 
   return sign(
@@ -37,10 +37,10 @@ export async function gcpKmsSign(
 export async function gcpKmsVerify(
   token: string,
   client: KeyManagementServiceClient,
-  options: Omit<jsonwebtoken.VerifyOptions, 'algorithms'> & {
+  options: Omit<jsonwebtoken.VerifyOptions, 'algorithms' | 'complete'> & {
     resolveKeyId?: (kid: string) => string | Promise<string>;
   } = {},
-): Promise<object> {
+): Promise<jsonwebtoken.Jwt> {
   const { resolveKeyId, ...jwtOptions } = options;
 
   return verify(

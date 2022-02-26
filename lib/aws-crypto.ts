@@ -3,8 +3,8 @@ import {
   KMSClient,
   SignCommand,
 } from '@aws-sdk/client-kms';
-import * as pMemoize from 'p-memoize';
-import { KmsJsonWebTokenError } from './error';
+import pMemoize from 'p-memoize';
+import { KmsJsonWebTokenError } from './error.js';
 
 export async function asymmetricSign(
   client: KMSClient,
@@ -44,7 +44,7 @@ export const getPublicKey = pMemoize(
 
     if (
       publicKey.KeyUsage !== 'SIGN_VERIFY' ||
-      !publicKey.CustomerMasterKeySpec?.startsWith('RSA')
+      !publicKey.KeySpec?.startsWith('RSA')
     ) {
       throw new KmsJsonWebTokenError('Incompatible Public Key').debug({
         publicKey,

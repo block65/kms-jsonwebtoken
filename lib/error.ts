@@ -1,8 +1,5 @@
-import { CustomError } from '@block65/custom-error';
+import { CustomError, Status } from '@block65/custom-error';
 
 export class KmsJsonWebTokenError extends CustomError {
-  constructor(msg: string, previous?: Error) {
-    super(msg, previous);
-    this.setName('KmsJsonWebTokenError');
-  }
+  public code = Status.INVALID_ARGUMENT;
 }
