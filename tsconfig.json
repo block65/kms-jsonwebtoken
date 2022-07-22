@@ -2,14 +2,15 @@
   "compilerOptions": {
     "strict": true,
     "declaration": true,
-    "target": "es2021",
-    "module": "esnext",
-    "moduleResolution": "node",
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "node16",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
     "outDir": "./dist",
     "removeComments": true,
-    "lib": ["es2021"]
+    "lib": ["es2022"]
   },
   "include": ["./lib"],
   "exclude": ["./dist"]
