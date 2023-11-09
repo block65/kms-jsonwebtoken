@@ -13,12 +13,12 @@
     "dist/*.d.ts"
   ],
   "scripts": {
-    "build": "tsc",
-    "build:clean": "rimraf dist/**",
-    "build:watch": "tsc -w",
-    "prepare": "yarn build:clean && yarn build",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
-    "test:watch": "yarn test --watchAll"
+    "build": "pnpm exec tsc",
+    "build:clean": "pnpm exec rimraf dist/**",
+    "build:watch": "pnpm exec tsc -w",
+    "prepare": "pnpm run build:clean && yarn build",
+    "test": "NODE_OPTIONS=--experimental-vm-modules pnpm exec jest",
+    "test:watch": "pnpm run test --watchAll"
   },
   "dependencies": {
     "@block65/custom-error": "^12.0.0",
