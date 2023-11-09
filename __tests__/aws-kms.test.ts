@@ -1,3 +1,4 @@
+import { constants, generateKeyPairSync, sign } from 'node:crypto';
 import {
   GetPublicKeyCommand,
   GetPublicKeyResponse,
@@ -7,7 +8,6 @@ import {
   SignResponse,
 } from '@aws-sdk/client-kms';
 import awsSdkMock from 'aws-sdk-client-mock';
-import { constants, generateKeyPairSync, sign } from 'node:crypto';
 import { awsKmsSign, awsKmsVerify } from '../lib/index.js';
 
 const mockKmsClient = awsSdkMock.mockClient(KMSClient);
@@ -32,15 +32,13 @@ mockKmsClient
     };
   });
 
-mockKmsClient
-  .on(GetPublicKeyCommand)
-  .callsFake(async (): Promise<GetPublicKeyResponse> => {
-    return {
-      PublicKey: publicKey.export({ format: 'der', type: 'spki' }),
-      KeyUsage: 'SIGN_VERIFY',
-      KeySpec: 'RSA_2048',
-    };
-  });
+mockKmsClient.on(GetPublicKeyCommand).callsFake(
+  async (): Promise<GetPublicKeyResponse> => ({
+    PublicKey: publicKey.export({ format: 'der', type: 'spki' }),
+    KeyUsage: 'SIGN_VERIFY',
+    KeySpec: 'RSA_2048',
+  }),
+);
 
 describe.only('Basic Tests', () => {
   const kms = new KMSClient({});

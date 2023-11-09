@@ -30,10 +30,7 @@ export async function asymmetricSign(
 }
 
 export const getPublicKey = pMemoize(
-  async function awsGetPublicKey(
-    client: KMSClient,
-    keyId: string,
-  ): Promise<string> {
+  async (client: KMSClient, keyId: string): Promise<string> => {
     const publicKey = await client.send(
       new GetPublicKeyCommand({ KeyId: keyId }),
     );

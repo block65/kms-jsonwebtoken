@@ -1,6 +1,6 @@
+import { constants, generateKeyPairSync, sign } from 'node:crypto';
 import { KeyManagementServiceClient } from '@google-cloud/kms';
 import { jest } from '@jest/globals';
-import { constants, generateKeyPairSync, sign } from 'node:crypto';
 
 jest.unstable_mockModule('../lib/gcp-crypto.js', () => {
   const { publicKey, privateKey } = generateKeyPairSync('rsa', {
@@ -8,9 +8,10 @@ jest.unstable_mockModule('../lib/gcp-crypto.js', () => {
   });
 
   return {
-    getPublicKey: jest.fn(async (): Promise<string> => {
-      return publicKey.export({ format: 'pem', type: 'spki' }).toString();
-    }),
+    getPublicKey: jest.fn(
+      async (): Promise<string> =>
+        publicKey.export({ format: 'pem', type: 'spki' }).toString(),
+    ),
 
     asymmetricSign: async function mockSigner(
       client: KeyManagementServiceClient,
@@ -49,7 +50,7 @@ describe('GCP KMS', () => {
       );
     }
 
-    const kid = `kms-jsonwebtoken-deleteme/1`;
+    const kid = 'kms-jsonwebtoken-deleteme/1';
 
     const initialPayload = {
       hello: 'test',
