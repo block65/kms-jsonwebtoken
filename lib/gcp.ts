@@ -1,9 +1,9 @@
-import jsonwebtoken from 'jsonwebtoken';
 import { KeyManagementServiceClient } from '@google-cloud/kms';
+import jsonwebtoken from 'jsonwebtoken';
+import { KmsJsonWebTokenError } from './error.js';
+import { asymmetricSign, getPublicKey } from './gcp-crypto.js';
 import { sign } from './sign.js';
 import { verify } from './verify.js';
-import { asymmetricSign, getPublicKey } from './gcp-crypto.js';
-import { KmsJsonWebTokenError } from './error.js';
 
 export async function gcpKmsSign(
   payload: string | Buffer | object,

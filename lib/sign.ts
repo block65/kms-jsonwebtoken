@@ -1,5 +1,5 @@
-import jsonwebtoken from 'jsonwebtoken';
 import { randomBytes } from 'node:crypto';
+import jsonwebtoken from 'jsonwebtoken';
 import { KmsJsonWebTokenError } from './error.js';
 
 export async function sign(

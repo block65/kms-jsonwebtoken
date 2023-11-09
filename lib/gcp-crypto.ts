@@ -1,5 +1,5 @@
-import { KeyManagementServiceClient } from '@google-cloud/kms';
 import { createHash } from 'node:crypto';
+import { KeyManagementServiceClient } from '@google-cloud/kms';
 import pMemoize from 'p-memoize';
 import { KmsJsonWebTokenError } from './error.js';
 

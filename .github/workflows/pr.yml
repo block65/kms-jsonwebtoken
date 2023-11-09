@@ -1,0 +1,20 @@
+name: Unit Tests (PR)
+
+on:
+  pull_request:
+    branches: ['canary', 'master']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+          cache: 'pnpm'
+      - run: make test

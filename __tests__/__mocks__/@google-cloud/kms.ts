@@ -1,6 +1,3 @@
-import * as crypto from 'crypto';
-import * as protos from '@google-cloud/kms/build/protos/protos';
-
 export const KeyManagementServiceClient = jest.fn().mockImplementation(() => ({
   cryptoKeyVersionPath: jest
     .fn()

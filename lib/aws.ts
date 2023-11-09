@@ -1,9 +1,9 @@
 import type { KMSClient } from '@aws-sdk/client-kms';
 import jsonwebtoken from 'jsonwebtoken';
-import { sign } from './sign.js';
-import { verify } from './verify.js';
 import { asymmetricSign, getPublicKey } from './aws-crypto.js';
 import { KmsJsonWebTokenError } from './error.js';
+import { sign } from './sign.js';
+import { verify } from './verify.js';
 
 export async function awsKmsSign(
   payload: string | Buffer | object,
